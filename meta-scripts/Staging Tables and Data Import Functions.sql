@@ -77,7 +77,7 @@ BEGIN
 		SELECT
 			seq,
 			CASE WHEN seq_position = 1 THEN
-				'CREATE TABLE tmp_' || seq_id || E' (\n'
+				'CREATE UNLOGGED TABLE tmp_' || seq_id || E' (\n'
 				|| E'\tfileid varchar(6),\n\tfiletype varchar(6), \n\tstusab varchar(2), \n'
 				|| E'\tchariter varchar(3), \n\tseq varchar(4), \n\tlogrecno int,\n' 
 				ELSE ''
@@ -88,7 +88,7 @@ BEGIN
 				ELSE ','
 			END AS sql1,
 			CASE WHEN seq_position = 1 THEN
-				'CREATE TABLE tmp_' || seq_id || E'_moe (\n'
+				'CREATE UNLOGGED TABLE tmp_' || seq_id || E'_moe (\n'
 				|| E'\tfileid varchar(6),\n\tfiletype varchar(6), \n\tstusab varchar(2), \n'
 				|| E'\tchariter varchar(3), \n\tseq varchar(4), \n\tlogrecno int,\n' 
 				ELSE ''
