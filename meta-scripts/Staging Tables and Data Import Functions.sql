@@ -1,4 +1,4 @@
-﻿SET search_path = public;
+﻿--SET search_path = public;
 
 --CREATE DDL FOR GEOHEADER IMPORT TABLE
 DROP FUNCTION IF EXISTS sql_create_tmp_geoheader(boolean);
