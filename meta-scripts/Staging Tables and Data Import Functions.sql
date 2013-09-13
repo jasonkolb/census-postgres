@@ -7,7 +7,7 @@ DECLARE
 	sql TEXT := '';
 BEGIN
 	sql := 'DROP TABLE IF EXISTS tmp_geoheader;
-CREATE TABLE tmp_geoheader (
+CREATE UNLOGGED TABLE tmp_geoheader (
 	all_fields varchar
 )
 WITH (autovacuum_enabled = FALSE, toast.autovacuum_enabled = FALSE)
