@@ -3,6 +3,7 @@
 
 sudo su
 apt-get update
+apt-get install unzip
 
 3. Create and format EB volume
  
@@ -33,7 +34,7 @@ wget --accept zip "http://www2.census.gov/acs2011_5yr/summaryfile/2007-2011_ACSS
 
 7. Unzip census data
 cd /mnt/census/public
-ar -xvf All_Geographies_Not_Tracts_Block_Groups.tar.gz
+tar -xvf All_Geographies_Not_Tracts_Block_Groups.tar.gz
 tar -xvf Tracts_Block_Groups_Only.tar.gz
 unzip 2011_ACS_Geography_Files.zip
 mv group1 All_Geographies_Not_Tracts_Block_Groups
@@ -46,37 +47,50 @@ apt-get install git
 cd /opt
 git clone https://github.com/jasonkolb/census-postgres.git
 
+8. Install and config postgres
+sudo apt-get install postgresql postgresql-contrib
+sudo apt-get install unzip
+sudo chown postgres /mnt/psql_storage
+
+nano /etc/postgres/9.1/main/postgresql.conf
+
+
 8. Copy a few files
-cp /opt/census-postgres/acs2011_5yr/Sequence_Number_and_Table_Number_Lookup.txt /eb/census/public/Sequence_Number_and_Table_Number_Lookup.txt
+cp /opt/census-postgres/acs2011_5yr/Sequence_Number_and_Table_Number_Lookup.txt /mnt/census/public/Sequence_Number_and_Table_Number_Lookup.txt
 
+9. Modify /etc/postgres/9.1/main/postgresql.conf
 
-3. Modify /etc/postgres/9.1/main/postgresql.conf
-
-Change the data directory
+Change the data directory to /eb/psql_data
 Comment out "ssl=true"
 
-3. Initialize it using 
+10. Initialize it using 
 
 /usr/lib/postgresql/9.1/bin/initdb -D /eb/psql_data
 
-4. Reboot
+11. Reboot
+12. Set permissions
+sudo su
+chown -R postgres /mnt/census
+
+
+5
 5. 
 
 echo "creating script to import data"
  (echo "" \
+&& echo "SET client_encoding = 'LATIN1';" \
 && echo "CREATE TABLESPACE bigspace LOCATION '/eb/psql_tmp';" \
 && echo "SET default_tablespace = bigspace;" \
 && echo "drop schema public cascade;" \
 && echo "create schema public;" \
 && echo "\i '/opt/census-postgres/meta-scripts/Support Functions and Tables.sql'" \
-&& echo "SELECT set_census_upload_root('/eb/census');" \
+&& echo "SELECT set_census_upload_root('/mnt/census');" \
 && echo "SELECT get_census_upload_root();" \
 && echo "SET search_path = public;" \
 && echo "\i '/opt/census-postgres/meta-scripts/Staging Tables and Data Import Functions.sql'" \
 && echo "\i '/opt/census-postgres/meta-scripts/Geoheader.sql'" \
 && echo "\i '/opt/census-postgres/meta-scripts/Data Store Table-Based.sql'" \
 && echo "\i '/opt/census-postgres/acs2011_5yr/ACS 2011 Data Dictionary.sql'" \
-&& echo "SET client_encoding = 'LATIN1';" \
 && echo "SELECT sql_create_tmp_geoheader(TRUE);" \
 && echo "SELECT sql_import_geoheader(TRUE);" \
 && echo "SELECT sql_create_import_tables(TRUE);" \
