@@ -13,16 +13,40 @@ nano /etc/fstab
 Add:
 /dev/xvdd   /eb auto    defaults,nobootwait,noatime 0 0
 
-3.Reboot
-4. Create the postgres data directories
+4. Reboot
+5. Create the postgres data directories
 
 sudo su
 mkdir /eb/psql_data
 mkdir /eb/psql_storage
-mkdir /eb/census
+mkdir /mnt/census
 
-1. Install git & clone repo
-2. 
+6. Download census data
+cd /mnt/census
+mkdir public
+chown postgres public
+mkdir public
+cd public
+wget --accept zip "http://www2.census.gov/acs2011_5yr/summaryfile/2007-2011_ACSSF_All_In_2_Giant_Files(Experienced-Users-Only)/2011_ACS_Geography_Files.zip"
+wget --accept zip "http://www2.census.gov/acs2011_5yr/summaryfile/2007-2011_ACSSF_All_In_2_Giant_Files(Experienced-Users-Only)/All_Geographies_Not_Tracts_Block_Groups.tar.gz"
+wget --accept zip "http://www2.census.gov/acs2011_5yr/summaryfile/2007-2011_ACSSF_All_In_2_Giant_Files(Experienced-Users-Only)/Tracts_Block_Groups_Only.tar.gz"
+
+7. Unzip census data
+cd /mnt/census/public
+ar -xvf All_Geographies_Not_Tracts_Block_Groups.tar.gz
+tar -xvf Tracts_Block_Groups_Only.tar.gz
+unzip 2011_ACS_Geography_Files.zip
+mv group1 All_Geographies_Not_Tracts_Block_Groups
+mv group2 Tracts_Block_Groups_Only
+cp geog/* All_Geographies_Not_Tracts_Block_Groups/ 
+
+7. Install git & clone repo
+
+apt-get install git
+cd /opt
+git clone https://github.com/jasonkolb/census-postgres.git
+
+8. Copy a few files
 cp /opt/census-postgres/acs2011_5yr/Sequence_Number_and_Table_Number_Lookup.txt /eb/census/public/Sequence_Number_and_Table_Number_Lookup.txt
 
 
