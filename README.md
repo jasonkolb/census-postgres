@@ -1,3 +1,15 @@
+1. Create and format EB volume
+2. Create the postgres data directory
+3. Modify /etc/postgres/9.1/main/postgresql.conf
+
+Change the data directory
+Comment out "ssl=true"
+
+
+3. Initialize it using 
+
+/usr/lib/postgresql/9.1/bin/initdb -D /eb/psql_data
+
 # Overview
 
 This project consists of a number of SQL scripts and other supporting files for importing some recent US Census datasets into a PostgreSQL database. The datasets of interest are the Decennial Census and the annual American Community Survey (ACS). There are two types of scripts:
