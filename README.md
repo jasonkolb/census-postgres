@@ -1,14 +1,78 @@
-1. Create and format EB volume
-2. Create the postgres data directory
+1. Create medium machine with 1000GB EBS volume on /dev/sdc
+2. Update system
+
+sudo su
+apt-get update
+
+3. Create and format EB volume
+ 
+sudo fdisk -l                   <-- will tell you the name of the volume (eg /dev/xvdd)
+mkfs /dev/xvdd
+nano /etc/fstab
+
+Add:
+/dev/xvdd   /eb auto    defaults,nobootwait,noatime 0 0
+
+3.Reboot
+4. Create the postgres data directories
+
+sudo su
+mkdir /eb/psql_data
+mkdir /eb/psql_storage
+mkdir /eb/census
+
+1. Install git & clone repo
+2. 
+cp /opt/census-postgres/acs2011_5yr/Sequence_Number_and_Table_Number_Lookup.txt /eb/census/public/Sequence_Number_and_Table_Number_Lookup.txt
+
+
 3. Modify /etc/postgres/9.1/main/postgresql.conf
 
 Change the data directory
 Comment out "ssl=true"
 
-
 3. Initialize it using 
 
 /usr/lib/postgresql/9.1/bin/initdb -D /eb/psql_data
+
+4. Reboot
+5. 
+
+echo "creating script to import data"
+ (echo "" \
+&& echo "CREATE TABLESPACE bigspace LOCATION '/eb/psql_tmp';" \
+&& echo "SET default_tablespace = bigspace;" \
+&& echo "drop schema public cascade;" \
+&& echo "create schema public;" \
+&& echo "\i '/opt/census-postgres/meta-scripts/Support Functions and Tables.sql'" \
+&& echo "SELECT set_census_upload_root('/eb/census');" \
+&& echo "SELECT get_census_upload_root();" \
+&& echo "SET search_path = public;" \
+&& echo "\i '/opt/census-postgres/meta-scripts/Staging Tables and Data Import Functions.sql'" \
+&& echo "\i '/opt/census-postgres/meta-scripts/Geoheader.sql'" \
+&& echo "\i '/opt/census-postgres/meta-scripts/Data Store Table-Based.sql'" \
+&& echo "\i '/opt/census-postgres/acs2011_5yr/ACS 2011 Data Dictionary.sql'" \
+&& echo "SET client_encoding = 'LATIN1';" \
+&& echo "SELECT sql_create_tmp_geoheader(TRUE);" \
+&& echo "SELECT sql_import_geoheader(TRUE);" \
+&& echo "SELECT sql_create_import_tables(TRUE);" \
+&& echo "SELECT sql_import_sequences(TRUE);" \
+
+I JUST RAN THE ABOVE STATEMENT, NEXT COMES THE STATEMENT BELOW. I HAD TO RERUN EVERYTHING AFTER MOVING POSTGRESQL DATA TO A LARGER STORAGE MOUNT
+
+
+SELECT sql_create_geoheader(TRUE);
+SELECT sql_geoheader_comments(TRUE);
+
+--For table-based data store:
+SELECT sql_store_by_tables(TRUE);
+SELECT sql_view_estimate_stored_by_tables(TRUE);
+SELECT sql_view_moe_stored_by_tables(TRUE);
+SELECT sql_parse_tmp_geoheader(TRUE); --Copies all data from tmp_geoheader to geoheader
+SELECT sql_insert_into_tables(TRUE); --Copies all estimates and margins of error to sequence tables
+
+&& echo '') > create_and_run_database.sql
+
 
 # Overview
 
