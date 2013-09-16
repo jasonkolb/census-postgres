@@ -1,4 +1,4 @@
-1. Create medium machine with 1000GB EBS volume on /dev/sdc
+1. Create medium machine with 500GB EBS volume on /dev/sdc
 2. Update system
 
 sudo su
