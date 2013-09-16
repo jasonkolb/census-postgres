@@ -1,3 +1,11 @@
+
+CREATE VIEW zipcodes AS SELECT
+stusab, logrecno,
+zcta5 as zipcode
+FROM geoheader
+WHERE not geoheader.zcta5 is null
+
+
 1. Create medium machine with 500GB EBS volume on /dev/sdc
 2. Update system
 
