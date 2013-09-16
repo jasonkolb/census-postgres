@@ -1,11 +1,3 @@
-
-CREATE VIEW zipcodes AS SELECT
-stusab, logrecno,
-zcta5 as zipcode
-FROM geoheader
-WHERE not geoheader.zcta5 is null
-
-
 1. Create medium machine with 500GB EBS volume on /dev/sdc
 2. Update system
 
@@ -118,6 +110,78 @@ SELECT sql_parse_tmp_geoheader(TRUE); --Copies all data from tmp_geoheader to ge
 SELECT sql_insert_into_tables(TRUE); --Copies all estimates and margins of error to sequence tables
 
 && echo '') > create_and_run_database.sql
+
+
+# Generating zipcode data
+
+create view vw_zip_code_stats AS
+select zipcodes.zipcode as "Zip Code",
+	B01002.B01002001 as "Median Age",
+	B01002.B01002002 as "Median Male Age",
+	B01002.B01002003 as "Median Female Age",
+	B01003.B01003001 as "Population",
+	CASE WHEN B02001.B02001001 is null THEN null WHEN B02001.B02001001 = 0 THEN null ELSE (B02001.B02001002 / B02001.B02001001) END as "% Whites",
+	CASE WHEN B02001.B02001001 is null THEN null WHEN B02001.B02001001 = 0 THEN null ELSE (B02001.B02001003 / B02001.B02001001) END as "% Blacks",
+	CASE WHEN B02001.B02001001 is null THEN null WHEN B02001.B02001001 = 0 THEN null ELSE (B02001.B02001004 / B02001.B02001001) END as "% American Indians",
+	CASE WHEN B02001.B02001001 is null THEN null WHEN B02001.B02001001 = 0 THEN null ELSE (B02001.B02001005 / B02001.B02001001) END as "% Asians",
+	CASE WHEN B02001.B02001001 is null THEN null WHEN B02001.B02001001 = 0 THEN null ELSE (B02001.B02001006 / B02001.B02001001) END as "% Pacific Islander",
+	CASE WHEN B02001.B02001001 is null THEN null WHEN B02001.B02001001 = 0 THEN null ELSE (B02001.B02001007 / B02001.B02001001) END as "% Other Races",
+	CASE WHEN B02001.B02001001 is null THEN null WHEN B02001.B02001001 = 0 THEN null ELSE (B02001.B02001008 / B02001.B02001001) END as "% Mixed Races",
+	
+	CASE WHEN B06008.B06008001 is null THEN null WHEN B06008.B06008001 = 0 THEN null ELSE (B06008.B06008002 / B06008.B06008001) END as "% Never Married",
+	CASE WHEN B06008.B06008001 is null THEN null WHEN B06008.B06008001 = 0 THEN null ELSE (B06008.B06008003 / B06008.B06008001) END as "% Married",
+	CASE WHEN B06008.B06008001 is null THEN null WHEN B06008.B06008001 = 0 THEN null ELSE ((B06008.B06008004 + B06008.B06008005) / B06008.B06008001) END as "% Divorced or Separated",
+
+	B06011.B06011001 as "Median Income",	
+	B19301.B19301001 as "Income per Capita",
+
+	CASE WHEN B08101.B08101001 is null THEN null WHEN B08101.B08101001 = 0 THEN null ELSE (B08101.B08101009 / B08101.B08101001) END as "% Drive to work",
+	CASE WHEN B08101.B08101001 is null THEN null WHEN B08101.B08101001 = 0 THEN null ELSE (B08101.B08101017 / B08101.B08101001) END as "% Carpool to work",
+	CASE WHEN B08101.B08101001 is null THEN null WHEN B08101.B08101001 = 0 THEN null ELSE (B08101.B08101025 / B08101.B08101001) END as "% Public transit to work",
+	CASE WHEN B08101.B08101001 is null THEN null WHEN B08101.B08101001 = 0 THEN null ELSE (B08101.B08101033 / B08101.B08101001) END as "% Walk to work",
+	CASE WHEN B08101.B08101001 is null THEN null WHEN B08101.B08101001 = 0 THEN null ELSE (B08101.B08101049 / B08101.B08101001) END as "%Work at home",
+	
+	CASE WHEN B08124.B08124001 is null THEN null WHEN B08124.B08124001 = 0 THEN null ELSE (B08124.B08124002 / B08124.B08124001) END as "% Mgmt Business and Science Workers",
+	CASE WHEN B08124.B08124001 is null THEN null WHEN B08124.B08124001 = 0 THEN null ELSE (B08124.B08124003 / B08124.B08124001) END as "% Service Workers",
+	CASE WHEN B08124.B08124001 is null THEN null WHEN B08124.B08124001 = 0 THEN null ELSE (B08124.B08124004 / B08124.B08124001) END as "% Sales and Office Workers",
+	CASE WHEN B08124.B08124001 is null THEN null WHEN B08124.B08124001 = 0 THEN null ELSE (B08124.B08124005 / B08124.B08124001) END as "% Construction Workers",
+	CASE WHEN B08124.B08124001 is null THEN null WHEN B08124.B08124001 = 0 THEN null ELSE (B08124.B08124006 / B08124.B08124001) END as "% Logistics Workers",
+	CASE WHEN B08124.B08124001 is null THEN null WHEN B08124.B08124001 = 0 THEN null ELSE (B08124.B08124007 / B08124.B08124001) END as "% Military Workers",
+	
+	CASE WHEN B14001.B14001001 is null THEN null WHEN B14001.B14001001 = 0 THEN null ELSE (B14001.B14001002 / B14001.B14001001) END as "% Children in School",
+	CASE WHEN B14001.B14001001 is null THEN null WHEN B14001.B14001001 = 0 THEN null ELSE (B14001.B14001010 / B14001.B14001001) END as "% Children not in School",
+
+	CASE WHEN B17001.B17001001 is null THEN null WHEN B17001.B17001001 = 0 THEN null ELSE (B17001.B17001002 / B17001.B17001001) END as "% below poverty",
+	CASE WHEN B17001.B17001001 is null THEN null WHEN B17001.B17001001 = 0 THEN null ELSE (B17001.B17001031 / B17001.B17001001) END as "% above poverty",
+	
+	CASE WHEN B22003.B22003001 is null THEN null WHEN B22003.B22003001 = 0 THEN null ELSE (B22003.B22003002 / B22003.B22003001) END as "% receiving food stamps",
+	CASE WHEN B22003.B22003001 is null THEN null WHEN B22003.B22003001 = 0 THEN null ELSE (B22003.B22003005 / B22003.B22003001) END as "% not receiving food stamps"	
+from zipcodes
+	join B01002 on B01002.logrecno = zipcodes.logrecno AND B01002.stusab = zipcodes.stusab
+	join B01003 on B01003.logrecno = zipcodes.logrecno AND B01003.stusab = zipcodes.stusab
+	join B02001 on B02001.logrecno = zipcodes.logrecno AND B02001.stusab = zipcodes.stusab
+	join B06008 on B06008.logrecno = zipcodes.logrecno AND B06008.stusab = zipcodes.stusab
+	join B06011 on B06011.logrecno = zipcodes.logrecno AND B06011.stusab = zipcodes.stusab
+	join B08101 on B08101.logrecno = zipcodes.logrecno AND B08101.stusab = zipcodes.stusab
+	join B08124 on B08124.logrecno = zipcodes.logrecno AND B08124.stusab = zipcodes.stusab
+	join B14001 on B14001.logrecno = zipcodes.logrecno AND B14001.stusab = zipcodes.stusab
+	join B17001 on B17001.logrecno = zipcodes.logrecno AND B17001.stusab = zipcodes.stusab
+	join B19301 on B19301.logrecno = zipcodes.logrecno AND B19301.stusab = zipcodes.stusab
+	join B22003 on B22003.logrecno = zipcodes.logrecno AND B22003.stusab = zipcodes.stusab;
+
+create table zipcode_stats as
+select * from vw_zip_code_stats;
+
+copy (select * from zipcode_stats) to '/tmp/zipcode_stats.csv' DELIMITER ',' CSV HEADER;
+
+
+
+
+
+
+
+
+
 
 
 # Overview
